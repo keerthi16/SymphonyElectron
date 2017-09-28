@@ -28,7 +28,9 @@
     "transformIgnorePatterns": []
   },
   "build": {
-    "asarUnpack": ["node_modules/@paulcbetts/cld/build/Release/cld.node"],
+    "asarUnpack": [
+      "node_modules/@paulcbetts/cld/build/Release/cld.node"
+    ],
     "files": [
       "!coverage/*",
       "!installer/*",
@@ -103,12 +105,14 @@
     "async.mapseries": "^0.5.2",
     "auto-launch": "^5.0.1",
     "electron-dl": "^1.9.0",
+    "electron-log": "^2.2.7",
     "electron-spellchecker": "^1.2.0",
     "electron-squirrel-startup": "^1.0.0",
     "extract-zip": "^1.6.5",
     "ffi": "^2.2.0",
     "filesize": "^3.5.10",
     "keymirror": "0.1.1",
+    "lodash.omit": "^4.5.0",
     "randomstring": "^1.1.5",
     "ref": "^1.3.4",
     "winreg": "^1.2.3"

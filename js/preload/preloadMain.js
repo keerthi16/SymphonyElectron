@@ -11,7 +11,7 @@
 // also to bring pieces of node.js:
 // https://github.com/electron/electron/issues/2984
 //
-const { ipcRenderer, remote } = require('electron');
+const { ipcRenderer, remote, crashReporter } = require('electron');
 
 const throttle = require('../utils/throttle.js');
 const apiEnums = require('../enums/api.js');
@@ -19,7 +19,7 @@ const apiCmds = apiEnums.cmds;
 const apiName = apiEnums.apiName;
 const getMediaSources = require('../desktopCapturer/getSources');
 
-require('../downloadManager/downloadManager');
+require('../downloadManager');
 
 // bug in electron preventing us from using spellchecker in pop outs
 // https://github.com/electron/electron/issues/4025
@@ -28,7 +28,7 @@ require('../downloadManager/downloadManager');
 document.addEventListener('DOMContentLoaded', () => {
     try {
         /* eslint-disable global-require */
-        const SpellCheckerHelper = require('../spellChecker/spellChecker').SpellCheckHelper;
+        const SpellCheckerHelper = require('../spellChecker').SpellCheckHelper;
         /* eslint-enable global-require */
         // Method to initialize spell checker
         const spellChecker = new SpellCheckerHelper();
@@ -39,8 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         /* eslint-enable no-console */
     }
 });
-
-const nodeURL = require('url');
 
 // hold ref so doesn't get GC'ed
 const local = {
@@ -55,6 +53,7 @@ const throttledSetBadgeCount = throttle(1000, function(count) {
     });
 });
 
+crashReporter.start({companyName: 'Symphony', submitURL: 'http://localhost:3000', uploadToServer: false, extra: {'process': 'preload script / renderer'}});
 createAPI();
 
 // creates API exposed from electron.
@@ -66,25 +65,6 @@ function createAPI() {
         return;
     }
 
-    // bug in electron is preventing using event 'will-navigate' from working
-    // in sandboxed environment. https://github.com/electron/electron/issues/8841
-    // so in the mean time using this code below to block clicking on A tags.
-    // A tags are allowed if they include href='_blank', this cause 'new-window'
-    // event to be received which is handled properly in windowMgr.js
-    window.addEventListener('beforeunload', function(event) {
-        var newUrl = document.activeElement && document.activeElement.href;
-        if (newUrl) {
-            var currHostName = window.location.hostname;
-            var parsedNewUrl = nodeURL.parse(newUrl);
-            var parsedNewUrlHostName = parsedNewUrl && parsedNewUrl.hostname;
-            if (currHostName !== parsedNewUrlHostName) {
-                /* eslint-disable no-param-reassign */
-                event.returnValue = 'false';
-                /* eslint-enable no-param-reassign */
-            }
-        }
-    });
-
     // note: window.open from main window (if in the same domain) will get
     // api access.  window.open in another domain will be opened in the default
     // browser (see: handler for event 'new-window' in windowMgr.js)
@@ -95,14 +75,14 @@ function createAPI() {
     window.ssf = {
         getVersionInfo: function() {
             return new Promise(function(resolve) {
-                var appName = remote.app.getName();
-                var appVer = remote.app.getVersion();
+                let appName = remote.app.getName();
+                let appVer = remote.app.getVersion();
 
                 const verInfo = {
                     containerIdentifier: appName,
                     containerVer: appVer,
                     apiVer: '1.0.0'
-                }
+                };
                 resolve(verInfo);
             });
         },
@@ -126,9 +106,22 @@ function createAPI() {
 
         /**
          * provides api to allow user to capture portion of screen, see api
-         * details in screenSnipper/ScreenSnippet.js
+         * details in screenSnipper/index.js
          */
-        ScreenSnippet: remote.require('./screenSnippet/ScreenSnippet.js').ScreenSnippet,
+        ScreenSnippet: remote.require('./screenSnippet/index.js').ScreenSnippet,
+
+        /**
+         * Provides API to crash the renderer process that calls this function
+         * Is only used for demos.
+         */
+        crashRendererProcess: function () {
+            // For practical purposes, we don't allow
+            // this method to work in non-dev environments
+            if (!process.env.ELECTRON_DEV) {
+                return;
+            }
+            process.crash();
+        },
 
         /**
          * Provides api for client side searching
@@ -198,7 +191,7 @@ function createAPI() {
          * this registration func is invoked then the protocolHandler callback
          * will be immediately called.
          */
-        registerProtocolHandler: function (protocolHandler) {
+        registerProtocolHandler: function(protocolHandler) {
             if (typeof protocolHandler === 'function') {
 
                 local.processProtocolAction = protocolHandler;

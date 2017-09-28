@@ -2,6 +2,7 @@
 
 const electron = require('electron');
 const app = electron.app;
+const crashReporter = electron.crashReporter;
 const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const nodeURL = require('url');
@@ -16,7 +17,6 @@ const log = require('./log.js');
 const logLevels = require('./enums/logLevels.js');
 const notify = require('./notify/electron-notify.js');
 const eventEmitter = require('./eventEmitter');
-
 const throttle = require('./utils/throttle.js');
 const { getConfigField, updateConfigField } = require('./config.js');
 const { isMac, isNodeEnv } = require('./utils/misc');
@@ -42,18 +42,36 @@ const preloadMainScript = path.join(__dirname, 'preload/_preloadMain.js');
 const MIN_WIDTH = 300;
 const MIN_HEIGHT = 600;
 
+/**
+ * Adds a window key
+ * @param key
+ * @param browserWin
+ */
 function addWindowKey(key, browserWin) {
     windows[key] = browserWin;
 }
 
+/**
+ * Removes a window key
+ * @param key
+ */
 function removeWindowKey(key) {
     delete windows[key];
 }
 
+/**
+ * Gets the parsed url
+ * @param url
+ * @returns {Url}
+ */
 function getParsedUrl(url) {
     return nodeURL.parse(url);
 }
 
+/**
+ * Creates the main window
+ * @param initialUrl
+ */
 function createMainWindow(initialUrl) {
     getConfigField('mainWinPos').then(
         function (bounds) {
@@ -63,13 +81,19 @@ function createMainWindow(initialUrl) {
             // failed, use default bounds
             doCreateMainWindow(initialUrl, null);
         }
-    )
+    );
 }
 
+/**
+ * Creates the main window with bounds
+ * @param initialUrl
+ * @param initialBounds
+ */
 function doCreateMainWindow(initialUrl, initialBounds) {
     let url = initialUrl;
     let key = getGuid();
 
+    crashReporter.start({companyName: 'Symphony', submitURL: 'http://localhost:3000', uploadToServer: false, extra: {'process': 'renderer / main window'}});
     log.send(logLevels.INFO, 'creating main window url: ' + url);
 
     let newWinOpts = {
@@ -154,7 +178,27 @@ function doCreateMainWindow(initialUrl, initialBounds) {
 
     mainWindow.webContents.on('did-fail-load', function (event, errorCode,
                                                          errorDesc, validatedURL) {
-        loadErrors.showLoadFailure(mainWindow, validatedURL, errorDesc, errorCode, retry);
+        loadErrors.showLoadFailure(mainWindow, validatedURL, errorDesc, errorCode, retry, false);
+    });
+
+    // In case a renderer process crashes, provide an
+    // option for the user to either reload or close the window
+    mainWindow.webContents.on('crashed', function () {
+        const options = {
+            type: 'error',
+            title: 'Renderer Process Crashed',
+            message: 'Oops! Looks like we have had a crash. Please reload or close this window.',
+            buttons: ['Reload', 'Close']
+        };
+
+        electron.dialog.showMessageBox(options, function (index) {
+            if (index === 0) {
+                mainWindow.reload();
+            }
+            else {
+                mainWindow.close();
+            }
+        });
     });
 
     addWindowKey(key, mainWindow);
@@ -179,7 +223,7 @@ function doCreateMainWindow(initialUrl, initialBounds) {
 
     function destroyAllWindows() {
         let keys = Object.keys(windows);
-        for (var i = 0, len = keys.length; i < len; i++) {
+        for (let i = 0, len = keys.length; i < len; i++) {
             let winKey = keys[i];
             removeWindowKey(winKey);
         }
@@ -247,7 +291,7 @@ function doCreateMainWindow(initialUrl, initialBounds) {
             let height = newWinOptions.height || MIN_HEIGHT;
 
             // try getting x and y position from query parameters
-            var query = newWinParsedUrl && querystring.parse(newWinParsedUrl.query);
+            let query = newWinParsedUrl && querystring.parse(newWinParsedUrl.query);
             if (query && query.x && query.y) {
                 let newX = Number.parseInt(query.x, 10);
                 let newY = Number.parseInt(query.y, 10);
@@ -292,6 +336,8 @@ function doCreateMainWindow(initialUrl, initialBounds) {
                 if (browserWin) {
                     log.send(logLevels.INFO, 'loaded pop-out window url: ' + newWinParsedUrl);
 
+                    crashReporter.start({companyName: 'Symphony', submitURL: 'http://localhost:3000', uploadToServer: false, extra: {'process': 'renderer / pop out window - winKey -> ' + newWinKey}});
+
                     browserWin.winName = frameName;
                     browserWin.setAlwaysOnTop(alwaysOnTop);
 
@@ -299,6 +345,24 @@ function doCreateMainWindow(initialUrl, initialBounds) {
                         removeWindowKey(newWinKey);
                         browserWin.removeListener('move', throttledBoundsChange);
                         browserWin.removeListener('resize', throttledBoundsChange);
+                    });
+
+                    browserWin.webContents.on('crashed', function () {
+                        const options = {
+                            type: 'error',
+                            title: 'Renderer Process Crashed',
+                            message: 'Oops! Looks like we have had a crash. Please reload or close this window.',
+                            buttons: ['Reload', 'Close']
+                        };
+
+                        electron.dialog.showMessageBox(options, function (index) {
+                            if (index === 0) {
+                                mainWindow.reload();
+                            }
+                            else {
+                                mainWindow.close();
+                            }
+                        });
                     });
 
                     addWindowKey(newWinKey, browserWin);
@@ -318,10 +382,16 @@ function doCreateMainWindow(initialUrl, initialBounds) {
 
 }
 
+/**
+ * Handles the event before-quit emitted by electron
+ */
 app.on('before-quit', function () {
     willQuitApp = true;
 });
 
+/**
+ * Saves the main window bounds
+ */
 function saveMainWinBounds() {
     let newBounds = getWindowSizeAndPosition(mainWindow);
 
@@ -330,10 +400,19 @@ function saveMainWinBounds() {
     }
 }
 
+/**
+ * Gets the main window
+ * @returns {*}
+ */
 function getMainWindow() {
     return mainWindow;
 }
 
+/**
+ * Gets a window's size and position
+ * @param window
+ * @returns {*}
+ */
 function getWindowSizeAndPosition(window) {
     if (window) {
         let newPos = window.getPosition();
@@ -353,14 +432,28 @@ function getWindowSizeAndPosition(window) {
     return null;
 }
 
+/**
+ * Shows the main window
+ */
 function showMainWindow() {
     mainWindow.show();
 }
 
+/**
+ * Tells if a window is the main window
+ * @param win
+ * @returns {boolean}
+ */
 function isMainWindow(win) {
     return mainWindow === win;
 }
 
+/**
+ * Checks if the window and a key has a window
+ * @param win
+ * @param winKey
+ * @returns {*}
+ */
 function hasWindow(win, winKey) {
     if (win instanceof BrowserWindow) {
         let browserWin = windows[winKey];
@@ -370,6 +463,10 @@ function hasWindow(win, winKey) {
     return false;
 }
 
+/**
+ * Sets if a user is online
+ * @param status
+ */
 function setIsOnline(status) {
     isOnline = status;
 }
@@ -417,6 +514,10 @@ function sendChildWinBoundsChange(window) {
     }
 }
 
+/**
+ * Opens an external url in the system's default browser
+ * @param urlToOpen
+ */
 function openUrlInDefaultBrower(urlToOpen) {
     if (urlToOpen) {
         electron.shell.openExternal(urlToOpen);
@@ -514,11 +615,8 @@ function checkExternalDisplay(appBounds) {
             return false;
         }
 
-        if (rightMost > bounds.x + bounds.width || bottomMost > bounds.y + bounds.height) {
-            return false;
-        }
+        return !(rightMost > bounds.x + bounds.width || bottomMost > bounds.y + bounds.height);
 
-        return true;
     });
 }
 
