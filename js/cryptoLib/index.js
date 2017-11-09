@@ -40,16 +40,13 @@ class Crypto {
                 return;
             }
 
-            lz4.compression(`data/${this.permanentIndexFolderName}`, `${this.permanentIndexFolderName}`, (error, response) => {
+            lz4.compression(this.permanentIndexFolderName, (error) => {
                 if (error) {
                     log.send(logLevels.ERROR, 'lz4 compression error: ' + error);
                     reject(error);
                     return;
                 }
 
-                if (response && response.stderr) {
-                    log.send(logLevels.WARN, 'compression stderr, ' + response.stderr);
-                }
                 const input = fs.createReadStream(`${this.dump}/${this.permanentIndexFolderName}.tar.lz4`);
                 const outputEncryption = fs.createWriteStream(this.encryptedIndex);
                 let config = {
@@ -103,15 +100,12 @@ class Crypto {
                     return;
                 }
 
-                lz4.deCompression(`${this.dump}/decrypted.tar.lz4`,(error, response) => {
+                lz4.deCompression('decrypted.tar.lz4',(error) => {
                     if (error) {
                         log.send(logLevels.ERROR, 'lz4 deCompression error, ' + error);
                         // no return, need to unlink if error
                     }
 
-                    if (response && response.stderr) {
-                        log.send(logLevels.WARN, 'deCompression stderr, ' + response.stderr);
-                    }
                     fs.unlink(`${this.dump}/decrypted.tar.lz4`, () => {
                         resolve('success');
                     });

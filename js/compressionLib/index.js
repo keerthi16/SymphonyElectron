@@ -1,83 +1,69 @@
-const child = require('child_process');
-const isMac = require('../utils/misc.js').isMac;
 const electron = require('electron');
+const fs = require('fs');
+const tar = require('tar');
+const lz4 = require('lz4');
 const app = electron.app;
+
 const path = require('path');
 const userData = path.join(app.getPath('userData'));
 const isDevEnv = require('../utils/misc.js').isDevEnv;
 const DATA_FOLDER_PATH = isDevEnv ? path.join(__dirname, '..', '..') : userData;
 
-const execPath = path.dirname(app.getPath('exe'));
-
-// lz4 library path
-const libraryFolderPath = isDevEnv ? path.join(__dirname, '..', '..', 'library') : path.join(execPath, 'library');
-const winArchPath = process.arch === 'ia32' ? 'lz4-win-x86.exe' : 'lz4-win-x64.exe';
-const productionPath = path.join(execPath, libraryFolderPath, winArchPath);
-const devPath = path.join(__dirname, '..', '..', 'library', winArchPath);
-
-const lz4Path = isDevEnv ? devPath : productionPath;
-
 /**
  * Using the child process to execute the tar and lz4
  * compression and the final output of this function
  * will be compressed file with ext: .tar.lz4
- * @param pathToFolder
- * @param outputPath
+ * @param folderName
  * @param callback
  */
-function compression(pathToFolder, outputPath, callback) {
-    if (isMac) {
-        child.exec(`cd "${DATA_FOLDER_PATH}" && tar cf - "${pathToFolder}" | lz4 > "${outputPath}.tar.lz4"`, (error, stdout, stderr) => {
-            if (error) {
-                return callback(new Error(error), null);
-            }
-            return callback(null, {
-                stderr: stderr.toString().trim(),
-                stdout: stdout.toString().trim()
+function compression(folderName, callback) {
+    let pathToFolder = `${DATA_FOLDER_PATH}/data/${folderName}`;
+    let outputPath = `${DATA_FOLDER_PATH}/${folderName}`;
+    tar.c({file: `${outputPath}.tar`}, [pathToFolder])
+        .then(() => {
+            let encoder = lz4.createEncoderStream();
+
+            let input = fs.createReadStream(`${outputPath}.tar`);
+            let output = fs.createWriteStream(`${outputPath}.tar.lz4`);
+
+            let pipeOut = input.pipe(encoder).pipe(output);
+
+            pipeOut.on('finish', function () {
+                fs.unlinkSync(`${outputPath}.tar`);
+                return callback(null, 'success');
             });
         })
-    } else {
-        child.exec(`cd "${DATA_FOLDER_PATH}" && "${libraryFolderPath}\\tar-win.exe" cf - "${pathToFolder}" | "${lz4Path}" > "${outputPath}.tar.lz4"`, (error, stdout, stderr) => {
-            if (error) {
-                return callback(new Error(error), null);
-            }
-            return callback(null, {
-                stderr: stderr.toString().trim(),
-                stdout: stdout.toString().trim()
-            });
+        .catch((error) => {
+            return callback(new Error(error), null);
         })
-    }
 }
 
 /**
  * This function decompress the file
  * and the ext should be .tar.lz4
  * the output will be the user index folder
- * @param pathName
+ * @param fileName
  * @param callback
  */
-function deCompression(pathName, callback) {
-    if (isMac) {
-        child.exec(`cd "${DATA_FOLDER_PATH}" && lz4 -d "${pathName}" | tar -xf - `, (error, stdout, stderr) => {
-            if (error) {
-                return callback(new Error(error), null);
-            }
-            return callback(null, {
-                stderr: stderr.toString().trim(),
-                stdout: stdout.toString().trim()
+function deCompression(fileName, callback) {
+    let inputPath = `${DATA_FOLDER_PATH}/${fileName}`;
+    let outputPath = `${DATA_FOLDER_PATH}/uncompressed.tar`;
+
+    let decoder = lz4.createDecoderStream();
+
+    let input = fs.createReadStream(inputPath);
+    let output = fs.createWriteStream(outputPath);
+
+    input.pipe(decoder).pipe(output).on('finish', () => {
+        tar.x({file: outputPath})
+            .then(() => {
+                fs.unlinkSync(outputPath);
+                return callback(null, 'success')
+            })
+            .catch((error) => {
+                return callback(new Error(error), null)
             });
-        })
-    } else {
-        child.exec(`cd "${DATA_FOLDER_PATH}" && "${lz4Path}" -d "${pathName}" | "${libraryFolderPath}\\tar-win.exe" xf - `, (error, stdout, stderr) => {
-            if (error) {
-                return callback(new Error(error), null);
-            }
-            return callback(null, {
-                stderr: stderr.toString().trim(),
-                stdout: stdout.toString().trim()
-            });
-        })
-    }
+    });
 }
 
 module.exports = {
