@@ -9,10 +9,9 @@ const searchConfig = require('../search/searchConfig.js');
 class Crypto {
 
     constructor(userId, key) {
-        this.indexDataFolder = searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME_PATH +
-            '_' + userId + '_' + searchConfig.INDEX_VERSION;
-        this.permanentIndexName = searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME + '_' + userId + '_' + searchConfig.INDEX_VERSION;
-        this.dump = searchConfig.FOLDERS_CONSTANTS.ROOT_PATH;
+        this.indexDataFolder = `${searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME_PATH}_${userId}_${searchConfig.INDEX_VERSION}`;
+        this.permanentIndexName = `${searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME}_${userId}_${searchConfig.INDEX_VERSION}`;
+        this.dump = searchConfig.FOLDERS_CONSTANTS.ROOT_PATH;;
         this.key = key;
         this.encryptedIndex = `${searchConfig.FOLDERS_CONSTANTS.ROOT_PATH}/${this.permanentIndexName}.enc`;
         this.dataFolder = searchConfig.FOLDERS_CONSTANTS.INDEX_PATH;
@@ -27,7 +26,7 @@ class Crypto {
         return new Promise((resolve, reject) => {
 
             if (!fs.existsSync(this.indexDataFolder)){
-                log.send(logLevels.ERROR, 'user index folder not found');
+                log.send(logLevels.ERROR, 'Crypto: User index folder not found');
                 reject();
                 return;
             }
@@ -35,13 +34,13 @@ class Crypto {
             lz4.compression(`${searchConfig.FOLDERS_CONSTANTS.INDEX_FOLDER_NAME}/${this.permanentIndexName}`,
                 `${this.permanentIndexName}`, (error, response) => {
                     if (error) {
-                        log.send(logLevels.ERROR, 'lz4 compression error: ' + error);
+                        log.send(logLevels.ERROR, 'Crypto: Error while compressing to lz4: ' + error);
                         reject(error);
                         return;
                     }
 
                     if (response && response.stderr) {
-                        log.send(logLevels.WARN, 'compression stderr, ' + response.stderr);
+                        log.send(logLevels.WARN, 'Crypto: Child process stderr while compression, ' + response.stderr);
                     }
                     const input = fs.createReadStream(`${this.dump}/${this.permanentIndexName}${searchConfig.TAR_LZ4_EXT}`);
                     const outputEncryption = fs.createWriteStream(this.encryptedIndex);
@@ -54,7 +53,7 @@ class Crypto {
 
                     encryptionProcess.on('finish', (err) => {
                         if (err) {
-                            log.send(logLevels.ERROR, 'encryption error: ' + err);
+                            log.send(logLevels.ERROR, 'Crypto: Error while encrypting the compressed file: ' + err);
                             reject(new Error(err));
                             return;
                         }
@@ -74,7 +73,7 @@ class Crypto {
         return new Promise((resolve, reject) => {
 
             if (!fs.existsSync(this.encryptedIndex)){
-                log.send(logLevels.ERROR, 'encrypted file not found');
+                log.send(logLevels.ERROR, 'Crypto: Encrypted file not found');
                 reject();
                 return;
             }
@@ -98,12 +97,12 @@ class Crypto {
 
                 lz4.deCompression(`${this.dump}/decrypted${searchConfig.TAR_LZ4_EXT}`,(error, response) => {
                     if (error) {
-                        log.send(logLevels.ERROR, 'lz4 deCompression error, ' + error);
+                        log.send(logLevels.ERROR, 'Crypto: Error while deCompression, ' + error);
                         // no return, need to unlink if error
                     }
 
                     if (response && response.stderr) {
-                        log.send(logLevels.WARN, 'deCompression stderr, ' + response.stderr);
+                        log.send(logLevels.WARN, 'Crypto: Child process stderr while deCompression, ' + response.stderr);
                     }
                     fs.unlink(`${this.dump}/decrypted${searchConfig.TAR_LZ4_EXT}`, () => {
                         resolve('success');
