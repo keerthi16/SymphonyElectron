@@ -1,14 +1,10 @@
 'use strict';
-const path = require('path');
 const fs = require('fs');
 const lz4 = require('../compressionLib');
-const isDevEnv = require('../utils/misc.js').isDevEnv;
 const crypto = require('./crypto');
 const log = require('../log.js');
 const logLevels = require('../enums/logLevels.js');
 const searchConfig = require('../search/searchConfig.js');
-
-const DUMP_PATH = isDevEnv ? path.join(__dirname, '..', '..') : searchConfig.FOLDERS_CONSTANTS.USER_DATA_PATH;
 
 class Crypto {
 
@@ -16,9 +12,9 @@ class Crypto {
         this.indexDataFolder = searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME_PATH +
             '_' + userId + '_' + searchConfig.INDEX_VERSION;
         this.permanentIndexName = searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME + '_' + userId + '_' + searchConfig.INDEX_VERSION;
-        this.dump = DUMP_PATH;
+        this.dump = searchConfig.FOLDERS_CONSTANTS.ROOT_PATH;
         this.key = key;
-        this.encryptedIndex = `${DUMP_PATH}/${this.permanentIndexName}.enc`;
+        this.encryptedIndex = `${searchConfig.FOLDERS_CONSTANTS.ROOT_PATH}/${this.permanentIndexName}.enc`;
         this.dataFolder = searchConfig.FOLDERS_CONSTANTS.INDEX_PATH;
     }
 

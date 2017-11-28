@@ -36,6 +36,7 @@ class Search {
         this.dataFolder = searchConfig.FOLDERS_CONSTANTS.INDEX_PATH;
         this.realTimeIndex = searchConfig.FOLDERS_CONSTANTS.TEMP_REAL_TIME_INDEX;
         this.batchIndex = searchConfig.FOLDERS_CONSTANTS.TEMP_BATCH_INDEX_FOLDER;
+        this.encryptedIndexPath = `${searchConfig.FOLDERS_CONSTANTS.ROOT_PATH}/${searchConfig.FOLDERS_CONSTANTS.PREFIX_NAME}_${userId}_${searchConfig.INDEX_VERSION}.enc`;
         this.messageData = [];
         this.isRealTimeIndexing = false;
         this.crypto = new Crypto(userId, key);
@@ -357,6 +358,10 @@ class Search {
                 }
             });
         });
+    }
+
+    checkIndexExist() {
+        return fs.existsSync(this.encryptedIndexPath);
     }
 
     /**

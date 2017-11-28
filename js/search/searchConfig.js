@@ -11,6 +11,8 @@ const INDEX_FOLDER_NAME = 'data';
 const winLibraryPath = isDevEnv ? path.join(__dirname, '..', '..', 'library') : path.join(execPath, 'library');
 const macLibraryPath = isDevEnv ? path.join(__dirname, '..', '..', 'library') : path.join(execPath, '..', 'library');
 
+const rootPath = isDevEnv ? path.join(__dirname, '..', '..') : userData;
+
 const arch = process.arch === 'ia32';
 
 const winIndexValidatorArch = arch ? 'indexvalidator-x86.exe' : 'indexvalidator-x64.exe';
@@ -40,7 +42,8 @@ const folderPaths = {
     PREFIX_NAME_PATH: indexFolderPath + '/search_index',
     EXEC_PATH: execPath,
     USER_DATA_PATH: userData,
-    INDEX_FOLDER_NAME: INDEX_FOLDER_NAME
+    INDEX_FOLDER_NAME: INDEX_FOLDER_NAME,
+    ROOT_PATH: rootPath
 };
 
 const searchConfig = {
