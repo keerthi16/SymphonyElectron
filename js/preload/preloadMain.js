@@ -141,6 +141,8 @@ function createAPI() {
          */
         deleteIndexFolder: remote.require('./search/search.js').deleteIndexFolder,
 
+        getSearchConfig: remote.require('./search/search.js').getSearchConfig,
+
         /**
          * Brings window forward and gives focus.
          * @param  {String} windowName Name of window. Note: main window name is 'main'

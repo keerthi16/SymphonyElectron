@@ -18,7 +18,7 @@ const protocolHandler = require('./protocolHandler');
 const getCmdLineArg = require('./utils/getCmdLineArg.js');
 const log = require('./log.js');
 const logLevels = require('./enums/logLevels.js');
-const { deleteIndexFolder } = require('./search/search.js');
+const { deleteIndexFolder, readUserConfig } = require('./search/search.js');
 
 require('electron-dl')();
 
@@ -34,6 +34,8 @@ shellPath()
             process.env.PATH
         ].join(':');
     });
+
+readUserConfig();
 
 // used to check if a url was opened when the app was already open
 let isAppAlreadyOpen = false;

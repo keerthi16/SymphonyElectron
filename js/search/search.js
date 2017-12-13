@@ -16,6 +16,8 @@ const Crypto = require('../cryptoLib');
 
 const INDEX_VALIDATOR = searchConfig.LIBRARY_CONSTANTS.INDEX_VALIDATOR;
 
+let searchUsersConfig = [];
+
 /**
  * This search class communicates with the SymphonySearchEngine C library via node-ffi.
  * There should be only 1 instance of this class in the Electron
@@ -573,11 +575,25 @@ function deleteIndexFolder() {
     Search.deleteIndexFolders(searchConfig.FOLDERS_CONSTANTS.INDEX_PATH);
 }
 
+function readUserConfig() {
+    searchConfig.SEARCH_USER_CONFIG()
+        .then((data) => {
+            searchUsersConfig = data;
+        })
+        .catch(log.send(logLevels.WRAN, 'Error reading search config'));
+}
+
+function getSearchConfig() {
+    return searchUsersConfig
+}
+
 /**
  * Exporting the search library
  * @type {{Search: Search}}
  */
 module.exports = {
     Search: Search,
-    deleteIndexFolder: deleteIndexFolder
+    deleteIndexFolder: deleteIndexFolder,
+    readUserConfig: readUserConfig,
+    getSearchConfig: getSearchConfig
 };

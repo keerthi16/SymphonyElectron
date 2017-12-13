@@ -1,5 +1,6 @@
 const electron = require('electron');
 const app = electron.app;
+const fs = require('fs');
 const path = require('path');
 const userData = path.join(app.getPath('userData'));
 const execPath = path.dirname(app.getPath('exe'));
@@ -43,6 +44,26 @@ const folderPaths = {
     INDEX_FOLDER_NAME: INDEX_FOLDER_NAME
 };
 
+function searchUsersConfig() {
+    return new Promise((resolve, reject)=> {
+        if (fs.existsSync(`./search_users_config.json`)) {
+            fs.readFile(`./search_users_config.json`, 'utf8', (err, data) => {
+                if (err) {
+                    reject(new Error('Error reading the '))
+                }
+                let usersConfig = [];
+                try {
+                    usersConfig = JSON.parse(data);
+                } catch (e) {
+                    reject('can not parse user config file data: ' + data + ', error: ' + err);
+                    return;
+                }
+                resolve(usersConfig);
+            })
+        }
+    });
+}
+
 const searchConfig = {
     SEARCH_PERIOD_SUBTRACTOR: 3 * 31 * 24 * 60 * 60 * 1000,
     REAL_TIME_INDEXING_TIME: 60000,
@@ -53,7 +74,8 @@ const searchConfig = {
     BATCH_RANDOM_INDEX_PATH_LENGTH: 20,
     LIBRARY_CONSTANTS: libraryPaths,
     FOLDERS_CONSTANTS: folderPaths,
-    TAR_LZ4_EXT: '.tar.lz4'
+    TAR_LZ4_EXT: '.tar.lz4',
+    SEARCH_USER_CONFIG: searchUsersConfig
 };
 
 module.exports = searchConfig;
