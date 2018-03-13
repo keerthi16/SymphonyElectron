@@ -40,7 +40,7 @@ describe('Tests for Search', function() {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
     beforeAll(function (done) {
-        childProcess.exec(`npm rebuild --target=${process.version} --build-from-source`, function(err) {
+        //childProcess.exec(`npm rebuild --target=${process.version} --build-from-source`, function(err) {
 
             userId = 12345678910112;
             key = 'jjjehdnctsjyieoalskcjdhsnahsadndfnusdfsdfsd=';
@@ -62,7 +62,7 @@ describe('Tests for Search', function() {
                 deleteIndexFolders(dataFolderPath)
             }
             done();
-        });
+        //});
     });
 
     afterAll(function (done) {

@@ -9,11 +9,13 @@ describe('Tests for Activity Detection', function() {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
     beforeAll(function(done) {
-        childProcess.exec(`npm rebuild --target=${process.version} --build-from-source`, function(err) {
+        console.log('akon');
+        console.log(process);
+        //childProcess.exec(`npm rebuild --target=${process.version} --build-from-source`, function(err) {
             activityDetection = require('../js/activityDetection');
             activityDetection.setActivityWindow(900000, electron.ipcRenderer);
             done();
-        });
+        //});
     });
 
     beforeEach(function() {
