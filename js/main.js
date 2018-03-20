@@ -1,6 +1,7 @@
 'use strict';
 
 // Third Party Dependencies
+const fs = require('fs');
 const electron = require('electron');
 const app = electron.app;
 const crashReporter = electron.crashReporter;
@@ -246,8 +247,7 @@ function setupThenOpenMainWindow() {
         let launchOnStartup = process.argv[3];
         // We wire this in via the post install script
         // to get the config file path where the app is installed
-        setStartup(launchOnStartup)
-            .then(updateUserConfigMac)
+        updateUserConfigMac(launchOnStartup)
             .then(app.quit)
             .catch(app.quit);
         return;
@@ -313,6 +313,27 @@ function createWin(urlFromConfig) {
     let url = nodeURL.format(parsedUrl);
 
     windowMgr.createMainWindow(url);
+    setAutoLaunchMac();
+}
+
+function setAutoLaunchMac() {
+    getConfigField('launchOnStartup')
+        .then(function (res) {
+            if (res) {
+                if (!fs.existsSync(`~/Library/LaunchAgents/${app.getName()}.plist`)){
+                    let title = 'Enabling Auto Launch';
+                    electron.dialog.showErrorBox(title, title);
+                    symphonyAutoLauncher.enable();
+                }
+            } else {
+                let title = 'Disabling Auto Launch';
+                electron.dialog.showErrorBox(title, title);
+                symphonyAutoLauncher.disable();
+            }
+        })
+        .catch(function (err) {
+            log.send(logLevels.ERROR, `Auto Launch: error reading configuration file:${err}`);
+        })
 }
 
 /**

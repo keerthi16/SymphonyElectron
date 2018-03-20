@@ -289,10 +289,10 @@ function updateUserConfigWin(perUserInstall) {
 
 /**
  * Manipulates user config on macOS
- * @param {String} globalConfigPath - The global config path from installer
  * @returns {Promise}
+ * @param autoLaunch
  */
-function updateUserConfigMac() {
+function updateUserConfigMac(autoLaunch) {
     return new Promise((resolve, reject) => {
         const userConfigFile = path.join(dirs.userConfig(), configFileName);
 
@@ -307,12 +307,18 @@ function updateUserConfigMac() {
         // In case the file exists, we remove it so that all the
         // values are fetched from the global config
         // https://perzoinc.atlassian.net/browse/ELECTRON-126
-        readUserConfig(userConfigFile).then((data) => {            
-            resolve(updateUserConfig(data));
+        readUserConfig(userConfigFile).then((data) => {
+            let config = data;
+            if (autoLaunch) {
+                config = Object.assign(data, {launchOnStartup: true})
+            } else {
+                config = Object.assign(data, {launchOnStartup: false})
+            }
+            resolve(updateUserConfig(config));
         }).catch((err) => {
             reject(err);
         });
-        
+
     });
 }
 
@@ -383,7 +389,7 @@ function clearCachedConfigs() {
 }
 
 function readConfigFileSync() {
-    
+
     let configPath;
     let globalConfigFileName = path.join('config', configFileName);
     if (isDevEnv) {
@@ -397,17 +403,17 @@ function readConfigFileSync() {
         // dir is in the same location.
         configPath = path.join(execPath, isMac ? '..' : '', globalConfigFileName);
     }
-    
+
     let data = fs.readFileSync(configPath);
-    
+
     try {
         return JSON.parse(data);
     } catch (err) {
         console.log("parsing config failed", err);
     }
-    
+
     return null;
-    
+
 }
 
 module.exports = {
@@ -424,7 +430,7 @@ module.exports = {
     // items below here are only exported for testing, do NOT use!
     saveUserConfig,
     clearCachedConfigs,
-    
+
     readConfigFileSync,
 
     // use only if you specifically need to read global config fields
