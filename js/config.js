@@ -308,12 +308,7 @@ function updateUserConfigMac(autoLaunch) {
         // values are fetched from the global config
         // https://perzoinc.atlassian.net/browse/ELECTRON-126
         readUserConfig(userConfigFile).then((data) => {
-            let config = data;
-            if (autoLaunch) {
-                config = Object.assign(data, {launchOnStartup: true})
-            } else {
-                config = Object.assign(data, {launchOnStartup: false})
-            }
+            let config = Object.assign(data, {launchOnStartup: !!autoLaunch});
             resolve(updateUserConfig(config));
         }).catch((err) => {
             reject(err);

@@ -299,6 +299,28 @@ function getUrlAndCreateMainWindow() {
 }
 
 /**
+ * This function checks the user config
+ * and plist file for enabling or disabling
+ * the auto launch feature.
+ */
+function setStartupMac() {
+    getConfigField('launchOnStartup')
+        .then(function (res) {
+            if (res) {
+                const appName = app.getName();
+                if (!fs.existsSync(`~/Library/LaunchAgents/${appName}.plist`)){
+                    symphonyAutoLauncher.enable();
+                }
+            } else {
+                symphonyAutoLauncher.disable();
+            }
+        })
+        .catch(function (err) {
+            log.send(logLevels.ERROR, `Auto Launch: error reading configuration file:${err}`);
+        })
+}
+
+/**
  * Creates a window
  * @param urlFromConfig
  */
@@ -313,27 +335,7 @@ function createWin(urlFromConfig) {
     let url = nodeURL.format(parsedUrl);
 
     windowMgr.createMainWindow(url);
-    setAutoLaunchMac();
-}
-
-function setAutoLaunchMac() {
-    getConfigField('launchOnStartup')
-        .then(function (res) {
-            if (res) {
-                if (!fs.existsSync(`~/Library/LaunchAgents/${app.getName()}.plist`)){
-                    let title = 'Enabling Auto Launch';
-                    electron.dialog.showErrorBox(title, title);
-                    symphonyAutoLauncher.enable();
-                }
-            } else {
-                let title = 'Disabling Auto Launch';
-                electron.dialog.showErrorBox(title, title);
-                symphonyAutoLauncher.disable();
-            }
-        })
-        .catch(function (err) {
-            log.send(logLevels.ERROR, `Auto Launch: error reading configuration file:${err}`);
-        })
+    setStartupMac();
 }
 
 /**
