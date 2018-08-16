@@ -41,7 +41,7 @@ let boundsChangeWindow;
 let alwaysOnTop = false;
 let position = 'lower-right';
 let display;
-let sandboxed = false;
+let sandboxed = true;
 let isAutoReload = false;
 let devToolsEnabled = true;
 let isCustomTitleBarEnabled = true;
