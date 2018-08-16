@@ -283,7 +283,7 @@
     <ROW File="natives_blob.bin" Component_="blink_image_resources_200_percent.pak" FileName="NATIVE~1.BIN|natives_blob.bin" Attributes="0" SourcePath="..\..\dist\win-unpacked\natives_blob.bin" SelfReg="false" NextFile="node.dll"/>
     <ROW File="nb.pak" Component_="am.pak" FileName="nb.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\nb.pak" SelfReg="false" NextFile="nl.pak"/>
     <ROW File="nl.pak" Component_="am.pak" FileName="nl.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\nl.pak" SelfReg="false" NextFile="pl.pak"/>
-    <ROW File="node.dll" Component_="node.dll" FileName="node.dll" Attributes="0" SourcePath="..\..\dist\win-unpacked\node.dll" SelfReg="false" NextFile="snapshot_blob.bin"/>
+    <ROW File="node.dll" Component_="node.dll" FileName="node.dll" Attributes="0" SourcePath="..\..\dist\win-unpacked\node.dll" SelfReg="false" NextFile="v8_context_snapshot.bin"/>
     <ROW File="package.json" Component_="npmignore" FileName="PACKAG~1.JSO|package.json" Attributes="0" SourcePath="..\..\dist\win-unpacked\resources\app.asar.unpacked\node_modules\spawn-rx\package.json" SelfReg="false" NextFile="index.ts"/>
     <ROW File="pl.pak" Component_="am.pak" FileName="pl.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\pl.pak" SelfReg="false" NextFile="ptBR.pak"/>
     <ROW File="ptBR.pak" Component_="am.pak" FileName="pt-BR.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\pt-BR.pak" SelfReg="false" NextFile="ptPT.pak"/>
@@ -292,7 +292,7 @@
     <ROW File="ru.pak" Component_="am.pak" FileName="ru.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\ru.pak" SelfReg="false" NextFile="sk.pak"/>
     <ROW File="sk.pak" Component_="am.pak" FileName="sk.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\sk.pak" SelfReg="false" NextFile="sl.pak"/>
     <ROW File="sl.pak" Component_="am.pak" FileName="sl.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\sl.pak" SelfReg="false" NextFile="sr.pak"/>
-    <ROW File="snapshot_blob.bin" Component_="blink_image_resources_200_percent.pak" FileName="SNAPSH~1.BIN|snapshot_blob.bin" Attributes="0" SourcePath="..\..\dist\win-unpacked\snapshot_blob.bin" SelfReg="false" NextFile="Symphony.exe"/>
+    <ROW File="v8_context_snapshot.bin" Component_="blink_image_resources_200_percent.pak" FileName="SNAPSH~1.BIN|v8_context_snapshot.bin" Attributes="0" SourcePath="..\..\dist\win-unpacked\v8_context_snapshot.bin" SelfReg="false" NextFile="Symphony.exe"/>
     <ROW File="sr.pak" Component_="am.pak" FileName="sr.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\sr.pak" SelfReg="false" NextFile="sv.pak"/>
     <ROW File="sv.pak" Component_="am.pak" FileName="sv.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\sv.pak" SelfReg="false" NextFile="sw.pak"/>
     <ROW File="sw.pak" Component_="am.pak" FileName="sw.pak" Attributes="0" SourcePath="..\..\dist\win-unpacked\locales\sw.pak" SelfReg="false" NextFile="ta.pak"/>

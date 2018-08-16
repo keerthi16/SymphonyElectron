@@ -283,7 +283,7 @@
     <ROW File="nl.pak" Component_="am.pak" FileName="nl.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\nl.pak" SelfReg="false" NextFile="pl.pak"/>
     <ROW File="node.dll" Component_="node.dll" FileName="node.dll" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\node.dll" SelfReg="false" NextFile="pdf_viewer_resources.pak"/>
     <ROW File="package.json" Component_="npmignore" FileName="PACKAG~1.JSO|package.json" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\resources\app.asar.unpacked\node_modules\spawn-rx\package.json" SelfReg="false" NextFile="index.ts"/>
-    <ROW File="pdf_viewer_resources.pak" Component_="blink_image_resources_200_percent.pak" FileName="PDF_VI~1.PAK|pdf_viewer_resources.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\pdf_viewer_resources.pak" SelfReg="false" NextFile="snapshot_blob.bin"/>
+    <ROW File="pdf_viewer_resources.pak" Component_="blink_image_resources_200_percent.pak" FileName="PDF_VI~1.PAK|pdf_viewer_resources.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\pdf_viewer_resources.pak" SelfReg="false" NextFile="v8_context_snapshot.bin"/>
     <ROW File="pl.pak" Component_="am.pak" FileName="pl.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\pl.pak" SelfReg="false" NextFile="ptBR.pak"/>
     <ROW File="ptBR.pak" Component_="am.pak" FileName="pt-BR.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\pt-BR.pak" SelfReg="false" NextFile="ptPT.pak"/>
     <ROW File="ptPT.pak" Component_="am.pak" FileName="pt-PT.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\pt-PT.pak" SelfReg="false" NextFile="ro.pak"/>
@@ -291,7 +291,7 @@
     <ROW File="ru.pak" Component_="am.pak" FileName="ru.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\ru.pak" SelfReg="false" NextFile="sk.pak"/>
     <ROW File="sk.pak" Component_="am.pak" FileName="sk.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\sk.pak" SelfReg="false" NextFile="sl.pak"/>
     <ROW File="sl.pak" Component_="am.pak" FileName="sl.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\sl.pak" SelfReg="false" NextFile="sr.pak"/>
-    <ROW File="snapshot_blob.bin" Component_="blink_image_resources_200_percent.pak" FileName="SNAPSH~1.BIN|snapshot_blob.bin" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\snapshot_blob.bin" SelfReg="false" NextFile="ucrtbase.dll"/>
+    <ROW File="v8_context_snapshot.bin" Component_="blink_image_resources_200_percent.pak" FileName="SNAPSH~1.BIN|v8_context_snapshot.bin" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\v8_context_snapshot.bin" SelfReg="false" NextFile="ucrtbase.dll"/>
     <ROW File="sr.pak" Component_="am.pak" FileName="sr.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\sr.pak" SelfReg="false" NextFile="sv.pak"/>
     <ROW File="sv.pak" Component_="am.pak" FileName="sv.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\sv.pak" SelfReg="false" NextFile="sw.pak"/>
     <ROW File="sw.pak" Component_="am.pak" FileName="sw.pak" Attributes="0" SourcePath="..\..\dist\win-ia32-unpacked\locales\sw.pak" SelfReg="false" NextFile="ta.pak"/>
