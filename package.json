@@ -122,7 +122,7 @@
     "electron-log": "2.2.15",
     "electron-spellchecker": "1.1.2",
     "electron-squirrel-startup": "1.0.0",
-    "ffi": "2.2.0",
+    "ffi": "git+https://github.com/keerthi16/node-ffi.git#v1.2.8",
     "filesize": "3.6.1",
     "keymirror": "0.1.1",
     "lodash.difference": "4.5.0",
