@@ -149,6 +149,52 @@ function setChromeFlags() {
     }
     
     app.commandLine.appendSwitch("disable-background-timer-throttling", true);
+
+    setChromeFlagsFromCommandLine();
+}
+
+function setChromeFlagsFromCommandLine() {
+
+    log.send(logLevels.INFO, 'Setting chrome flags from command line arguments!');
+
+    let chromeFlagsFromCmd = getCmdLineArg(process.argv, '--chrome-flags=', false);
+    if (!chromeFlagsFromCmd) {
+        return;
+    }
+
+    let chromeFlagsArgs = chromeFlagsFromCmd.substr(15);
+    if (!chromeFlagsArgs) {
+        return;
+    }
+
+    let flags = chromeFlagsArgs.split(',');
+    if (!flags || !Array.isArray(flags)) {
+        return;
+    }
+
+    log.send(logLevels.INFO, `Setting chrome flags from command line`);
+
+    for (let key in flags) {
+
+        if (!Object.prototype.hasOwnProperty.call(flags, key)) {
+            continue;
+        }
+
+        if (!flags[key]) {
+            return;
+        }
+
+        let flagArray = flags[key].split(':');
+
+        if (flagArray && Array.isArray(flagArray) && flagArray.length > 0) {
+            let chromeFlagKey = flagArray[0];
+            let chromeFlagValue = flagArray[1];
+            log.send(logLevels.INFO, `Setting chrome flag ${chromeFlagKey} to ${chromeFlagValue}`);
+            app.commandLine.appendSwitch(chromeFlagKey, chromeFlagValue);
+        }
+
+    }
+
 }
 
 // Set the chrome flags
