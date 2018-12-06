@@ -1,6 +1,6 @@
 {
   "name": "Symphony",
-  "productName": "Symphony-dev",
+  "productName": "Symphony",
   "version": "4.0.0",
   "clientVersion": "1.54",
   "buildNumber": "0",
@@ -9,7 +9,7 @@
   "main": "src/browser/main.js",
   "types": "src/browser/main.d.ts",
   "scripts": {
-    "tsc": "git clean -xdf ./lib && npm run lint && tsc",
+    "tsc": "git clean -xdf ./lib && tsc",
     "lint": "tslint --project tsconfig.json",
     "start": "npm run compile-css && cross-env ELECTRON_DEV=true electron .",
     "compile-css": "lessc src/renderer/styles/main.less src/renderer/styles/main.css",
