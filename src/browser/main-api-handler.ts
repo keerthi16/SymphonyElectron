@@ -3,6 +3,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 import { apiCmds, apiName, IApiArgs } from '../common/api-interface';
 import { LocaleType } from '../common/i18n';
 import { logger } from '../common/logger';
+import { downloadManagerAction } from '../common/utils';
 import { activityDetection } from './activity-detection';
 import { screenSnippet } from './screen-snippet';
 import {
@@ -120,7 +121,14 @@ ipcMain.on(apiName.symphonyApi, (event: Electron.Event, arg: IApiArgs) => {
             break;*/
         case apiCmds.openScreenSnippet:
             screenSnippet.capture(event.sender);
+            break;
+        case apiCmds.downloadManagerAction:
+            if (typeof arg.path === 'string') {
+                downloadManagerAction(arg.type, arg.path);
+            }
+            break;
         default:
+            break;
     }
 
 });

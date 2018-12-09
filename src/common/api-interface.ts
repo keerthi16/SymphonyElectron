@@ -18,6 +18,7 @@ export enum apiCmds {
     setLocale = 'set-locale',
     openScreenSnippet = 'open-screen-snippet',
     keyPress = 'key-press',
+    downloadManagerAction = 'download-manager-action',
 }
 
 export enum apiName {
@@ -38,6 +39,8 @@ export interface IApiArgs {
     isInMeeting: boolean;
     locale: string;
     keyCode: number;
+    path: string;
+    type: string;
 }
 
 /**

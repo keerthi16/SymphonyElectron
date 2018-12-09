@@ -1,8 +1,10 @@
 // regex match the semver (semantic version) this checks for the pattern X.Y.Z
 // ex-valid  v1.2.0, 1.2.0, 2.3.4-r51
 import archiver from 'archiver';
+import * as electron from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { i18n } from './i18n';
 
 const semver = /^v?(?:\d+)(\.(?:[x*]|\d+)(\.(?:[x*]|\d+)(?:-[\da-z-]+(?:\.[\da-z-]+)*)?(?:\+[\da-z-]+(?:\.[\da-z-]+)*)?)?)?$/i;
 const patch = /-([0-9A-Za-z-.]+)/;
@@ -245,4 +247,33 @@ const generateArchiveForDirectory = (source: string, destination: string, fileEx
     });
 };
 
-export { compareVersions, getCommandLineArgs, getGuid, pick, formatString, throttle, generateArchiveForDirectory };
+/**
+ * Open downloaded file
+ * @param type
+ * @param filePath
+ */
+const downloadManagerAction = (type, filePath) => {
+    if (type === 'open') {
+        const openResponse = electron.shell.openExternal(`file:///${filePath}`);
+        const focusedWindow = electron.BrowserWindow.getFocusedWindow();
+        if (!openResponse && focusedWindow && !focusedWindow.isDestroyed()) {
+            electron.dialog.showMessageBox(focusedWindow, {
+                message: i18n.t('The file you are trying to open cannot be found in the specified path.')(),
+                title: i18n.t('File not Found')(),
+                type: 'error',
+            });
+        }
+    } else {
+        const showResponse = electron.shell.showItemInFolder(filePath);
+        const focusedWindow = electron.BrowserWindow.getFocusedWindow();
+        if (!showResponse && focusedWindow && !focusedWindow.isDestroyed()) {
+            electron.dialog.showMessageBox(focusedWindow, {
+                message: i18n.t('The file you are trying to open cannot be found in the specified path.')(),
+                title: i18n.t('File not Found')(),
+                type: 'error',
+            });
+        }
+    }
+};
+
+export { compareVersions, getCommandLineArgs, getGuid, pick, formatString, throttle, generateArchiveForDirectory, downloadManagerAction };
