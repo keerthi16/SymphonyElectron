@@ -13,6 +13,15 @@ import { SSFApi } from './ssf-api';
 
 const ssf = new SSFApi();
 const notification = remote.require('../renderer/notification').notification;
+let ssInstance: any;
+
+try {
+    const SSAPIBridge = remote.require('swift-search').SSAPIBridge;
+    ssInstance = new SSAPIBridge();
+} catch (e) {
+    ssInstance = null;
+    console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
+}
 
 export default class AppBridge {
 
@@ -52,6 +61,9 @@ export default class AppBridge {
         // starts with corporate pod and
         // will be updated with the global config url
         this.origin = 'https://corporate.symphony.com';
+        if (ssInstance) {
+            ssInstance.setBroadcastMessage(this.broadcastMessage);
+        }
         window.addEventListener('message', this.callbackHandlers.onMessage);
     }
 
@@ -120,6 +132,11 @@ export default class AppBridge {
                 break;
             case apiCmds.showNotificationSettings:
                 ssf.showNotificationSettings();
+                break;
+            case apiCmds.swiftSearch:
+                if (ssInstance) {
+                    ssInstance.handleMessageEvents(data);
+                }
                 break;
         }
     }

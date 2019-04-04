@@ -26,6 +26,7 @@ export enum apiCmds {
     getMediaSource = 'get-media-source',
     notification = 'notification',
     closeNotification = 'close-notification',
+    swiftSearch = 'swift-search',
 }
 
 export enum apiName {
