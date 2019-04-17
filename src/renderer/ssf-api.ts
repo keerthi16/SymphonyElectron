@@ -87,12 +87,40 @@ try {
     console.warn('Failed to initialize Crypto Lib. You\'ll need to include the Crypto library. Contact the developers for more details');
 }
 
+let swiftSearch: any;
+try {
+    swiftSearch = remote.require('swift-search').Search;
+} catch (e) {
+    swiftSearch = null;
+    // tslint:disable-next-line
+    console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
+}
+
+let swiftSearchUtils: any;
+try {
+    swiftSearchUtils = remote.require('swift-search').SearchUtils;
+} catch (e) {
+    swiftSearchUtils = null;
+    // tslint:disable-next-line
+    console.warn("Failed to initialize swift search utils. You'll need to include the search dependency. Contact the developers for more details");
+}
+
 export class SSFApi {
 
     /**
      * Native encryption and decryption.
      */
     public CryptoLib: ICryptoLib | null = cryptoLib; // tslint:disable-line
+
+    /**
+     * Native encryption and decryption.
+     */
+    public Search: any | null = swiftSearch; // tslint:disable-line
+
+    /**
+     * Native encryption and decryption.
+     */
+    public SearchUtils: any | null = swiftSearchUtils; // tslint:disable-line
 
     /**
      * Implements equivalent of desktopCapturer.getSources - that works in

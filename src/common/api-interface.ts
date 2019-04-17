@@ -26,6 +26,7 @@ export enum apiCmds {
     getMediaSource = 'get-media-source',
     notification = 'notification',
     closeNotification = 'close-notification',
+    createSwiftSearchInstance = 'swift-search::create-instance',
     swiftSearch = 'swift-search',
 }
 
