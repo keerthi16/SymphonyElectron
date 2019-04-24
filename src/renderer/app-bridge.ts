@@ -1,6 +1,4 @@
-import { ChildProcess } from 'child_process';
 import { DesktopCapturerSource, remote } from 'electron';
-import * as path from 'path';
 
 import {
     apiCmds,
@@ -10,16 +8,21 @@ import {
     IScreenSnippet,
     LogLevel,
 } from '../common/api-interface';
-import { isDevEnv } from '../common/env';
 import { IScreenSourceError } from './desktop-capturer';
 import { SSFApi } from './ssf-api';
 
-const { fork } = remote.require('child_process');
-const notification = remote.require('../renderer/notification').notification;
-
 const ssf = new SSFApi();
-let swiftSearch: ChildProcess | null;
-let isSwiftSearchInitialized: boolean;
+const notification = remote.require('../renderer/notification').notification;
+let ssInstance: any;
+
+try {
+    const SSAPIBridge = remote.require('swift-search').SSAPIBridge;
+    ssInstance = new SSAPIBridge();
+} catch (e) {
+    console.log(e);
+    ssInstance = null;
+    console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
+}
 
 export default class AppBridge {
 
@@ -34,32 +37,6 @@ export default class AppBridge {
             return false;
         }
         return event.source && event.source === window;
-    }
-
-    /**
-     * This is to ensure that Swift-Search instance is
-     * created once on SFE event
-     */
-    private static initializeSwiftSearch() {
-        if (isSwiftSearchInitialized) {
-            return;
-        }
-        try {
-            const args = [
-                remote.app.getPath('exe'),
-                remote.app.getPath('userData'),
-                remote.app.getPath('logs'),
-            ];
-            const scriptPath = isDevEnv ?
-                './node_modules/swift-search/lib/src/searchAPIBridge.js' :
-                path.join(process.resourcesPath || '', 'app.asar/node_modules/swift-search/lib/src/searchAPIBridge.js');
-
-            swiftSearch = fork(scriptPath, args);
-            isSwiftSearchInitialized = true;
-        } catch (e) {
-            swiftSearch = null;
-            console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
-        }
     }
 
     public origin: string;
@@ -85,22 +62,10 @@ export default class AppBridge {
         // starts with corporate pod and
         // will be updated with the global config url
         this.origin = 'https://corporate.symphony.com';
-        isSwiftSearchInitialized = false;
-        if (swiftSearch) {
-            swiftSearch.on('message', (data) => {
-                this.broadcastMessage(data.method, data.message);
-            });
-
-            swiftSearch.on('exit', (error, errorCode) => {
-                console.warn('Swift-Search exited with error code -> ' + errorCode + ' ' + error);
-            });
+        if (ssInstance && typeof ssInstance.setBroadcastMessage === 'function') {
+            ssInstance.setBroadcastMessage(this.broadcastMessage);
         }
         window.addEventListener('message', this.callbackHandlers.onMessage);
-        window.addEventListener('beforeunload', () => {
-            if (swiftSearch) {
-                swiftSearch.kill();
-            }
-        });
     }
 
     /**
@@ -169,13 +134,9 @@ export default class AppBridge {
             case apiCmds.showNotificationSettings:
                 ssf.showNotificationSettings();
                 break;
-            case apiCmds.createSwiftSearchInstance:
-                AppBridge.initializeSwiftSearch();
-                break;
             case apiCmds.swiftSearch:
-                console.log(swiftSearch);
-                if (swiftSearch) {
-                    swiftSearch.send(data);
+                if (ssInstance) {
+                    ssInstance.handleMessageEvents(data);
                 }
                 break;
         }
