@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`screen picker should render correctly 1`] = `
+<div
+  className="ScreenPicker ScreenPicker-content"
+>
+  <div
+    className="ScreenPicker-title"
+  >
+    <span>
+      Choose what you'd like to share
+    </span>
+    <div
+      className="ScreenPicker-x-button"
+      onClick={[Function]}
+    >
+      <div
+        className="content-button"
+      >
+        <i>
+          <svg
+            fill="grey"
+            viewBox="0 0 48 48"
+          >
+            <path
+              d="M39.4,33.8L31,25.4c-0.4-0.4-0.9-0.9-1.4-1.4c0.5-0.5,1-1,1.4-1.4l8.4-8.4c0.8-0.8,0.8-2,0-2.8l-2.8-2.8 c-0.8-0.8-2-0.8-2.8,0L25.4,17c-0.4,0.4-0.9,0.9-1.4,1.4c-0.5-0.5-1-1-1.4-1.4l-8.4-8.4c-0.8-0.8-2-0.8-2.8,0l-2.8,2.8 c-0.8,0.8-0.8,2,0,2.8l8.4,8.4c0.4,0.4,0.9,0.9,1.4,1.4c-0.5,0.5-1,1-1.4,1.4l-8.4,8.4c-0.8,0.8-0.8,2,0,2.8l2.8,2.8 c0.8,0.8,2,0.8,2.8,0l8.4-8.4c0.4-0.4,0.9-0.9,1.4-1.4c0.5,0.5,1,1,1.4,1.4l8.4,8.4c0.8,0.8,2,0.8,2.8,0l2.8-2.8 C40.2,35.8,40.2,34.6,39.4,33.8z"
+            />
+          </svg>
+        </i>
+      </div>
+    </div>
+  </div>
+  <div
+    className="ScreenPicker-error-content"
+  >
+    <span
+      className="error-message"
+    >
+      No screens or applications are currently available.
+    </span>
+  </div>
+  <footer>
+    <button
+      className="ScreenPicker-cancel-button"
+      onClick={[Function]}
+    >
+      Cancel
+    </button>
+    <button
+      className="ScreenPicker-share-button ScreenPicker-share-button-disable"
+      onClick={[Function]}
+    >
+      Select Screen
+    </button>
+  </footer>
+</div>
+`;

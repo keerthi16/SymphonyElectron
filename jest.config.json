@@ -1,0 +1,44 @@
+{
+  "roots": [
+    "<rootDir>/spec"
+  ],
+  "transform": {
+    "^.+\\.tsx?$": "ts-jest"
+  },
+  "testRegex": "(test|spec)\\.tsx?$",
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx",
+    "json",
+    "node"
+  ],
+  "verbose": true,
+  "collectCoverage": true,
+  "coverageReporters": [
+    "text",
+    "html"
+  ],
+  "coverageDirectory": "out/coverage",
+  "collectCoverageFrom": [
+    "src/**/*.{ts,tsx}",
+    "!**/node_modules/**",
+    "!**/vendor/**"
+  ],
+  "reporters": [
+    "default",
+    ["./node_modules/jest-html-reporter", {
+      "pageTitle": "Symphony Electron Test Result",
+      "includeFailureMsg": true,
+      "includeConsoleLog": true,
+      "theme": "lightTheme",
+      "sort": "status",
+      "outputPath": "./out/Unit Tests Report.html"
+    }]
+  ],
+  "setupFiles": [
+    "./spec/setup/test-setup.js"
+  ],
+  "snapshotSerializers": ["enzyme-to-json/serializer"]
+}

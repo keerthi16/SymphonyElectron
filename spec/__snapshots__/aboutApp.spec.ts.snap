@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`about app should render correctly 1`] = `
+<div
+  className="AboutApp"
+>
+  <img
+    className="AboutApp-logo"
+    src="../renderer/assets/symphony-logo.png"
+  />
+  <span
+    className="AboutApp-name"
+  >
+    Symphony
+  </span>
+  <span
+    className="AboutApp-versionText"
+  >
+    Version 0-N/A ()
+  </span>
+  <span
+    className="AboutApp-copyrightText"
+  >
+    Copyright © 2019 Symphony
+  </span>
+</div>
+`;

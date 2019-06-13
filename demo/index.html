@@ -9,7 +9,24 @@
                 padding: 5px;
                 border: 1px solid black;
             }
+
+            .yellow-dot {
+                height: 25px;
+                width: 25px;
+                background-color: yellow;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .green-dot {
+                height: 25px;
+                width: 25px;
+                background-color: green;
+                border-radius: 50%;
+                display: inline-block;
+            }
         </style>
+        <link rel="stylesheet" href="download-manager.css">
     </head>
     <body>
         <h1>Symphony Electron API Demo</h1>
@@ -51,11 +68,28 @@
         <button id='open-config-win'>Open configure window</button>
         <br>
         <hr>
+        <textarea id="text-val" rows="4">Writes some thing to the file</textarea>
+        <br/>
+        <input type="button" id="download-file1" value="Download"/>
+        <input type="button" id="download-file2" value="Download"/>
+        <div id="footer"></div>
+        <br>
+        <hr>
         <p>
-            Crash Process:
+            Activity Detection:
         <p>
-            <button id='crash'>Crash Renderer</button>
+            <button id='activity-detection'>Init activity</button>
+            <span id='activity-status' class="green-dot"></span>
         </p>
+        <br>
+        <hr>
+        <p>Change language:<p>
+        <select id="locale-select" name="locale">
+            <option value="en-US">en-US</option>
+            <option value="ja-JP">ja-JP</option>
+            <option value="fr-FR">fr-FR</option>
+        </select>
+            <button id="changeLocale">Submit</button>
         <br>
         <hr>
         <p>Badge Count:<p>
@@ -73,13 +107,14 @@
         <p>Window activate:</p>
         <button id='open-win'>open window</button>
 
-        <button id='bring-to-front'>bring open window to front</button>
+        <button id='bring-to-front'>bring window to front</button>
+        <button id='bring-to-front-without-focus'>bring to front without focus</button>
 
         <hr>
         <p>Get Media Sources:</p>
-        <button id='get-sources'>Open screen picker</button>
+        <button id='get-sources'>Open screen picker & screensharing indicator</button>
         <br>
-        <video id='video'></video>
+        <video id='video' autoPlay loop muted style='max-width: 640px'></video>
 
         <hr>
         <p>Get Version Info:</p>
@@ -92,20 +127,60 @@
                 <th>Container Identifier</th>
                 <th>Container Version</th>
                 <th>Build Number</th>
+                <th>Search Api Version</th>
             </tr>
             <tr>
                 <td id="api-version"></td>
                 <td id="container-identifier"></td>
                 <td id="container-ver"></td>
                 <td id="build-number"></td>
+                <td id="search-api-ver"></td>
             </tr>
         </table>
     </body>
     <script>
+
+        window.name = 'main';
+
+        const apiCmds = {
+                isOnline: 'is-online',
+                getVersionInfo: 'get-version-info',
+                registerLogger: 'register-logger',
+                setBadgeCount: 'set-badge-count',
+                badgeDataUrl: 'badge-data-url',
+                activate: 'activate',
+                registerBoundsChange: 'register-bounds-change',
+                registerProtocolHandler: 'register-protocol-handler',
+                registerActivityDetection: 'register-activity-detection',
+                showNotificationSettings: 'show-notification-settings',
+                sanitize: 'sanitize',
+                bringToFront: 'bring-to-front',
+                openScreenPickerWindow: 'open-screen-picker-window',
+                popupMenu: 'popup-menu',
+                optimizeMemoryConsumption: 'optimize-memory-consumption',
+                optimizeMemoryRegister: 'optimize-memory-register',
+                setIsInMeeting: 'set-is-in-meeting',
+                setLocale: 'set-locale',
+                openScreenSnippet: 'open-screen-snippet',
+                keyPress: 'key-press',
+                closeWindow: 'close-window',
+                openScreenSharingIndicator: 'open-screen-sharing-indicator',
+                closeScreenSharingIndicator: 'close-screen-sharing-indicator',
+                downloadManagerAction: 'download-manager-action',
+                getMediaSource: 'get-media-source',
+                notification: 'notification',
+                closeNotification: 'close-notification',
+        };
+        let requestId = 0;
+
         var openConfigWin = document.getElementById('open-config-win');
 
         openConfigWin.addEventListener('click', function() {
-            ssf.showNotificationSettings();
+            if (window.ssf) {
+                ssf.showNotificationSettings();
+            } else {
+                postMessage(apiCmds.showNotificationSettings)
+            }
         });
 
         var notfEl = document.getElementById('notf');
@@ -124,7 +199,9 @@
 
             num++;
 
-            var notf = new ssf.Notification(title, {
+            var notf = {
+                id: num,
+                title,
                 body: (body + ' num=' + num + ' tag=' + tag),
                 image: imageUrl,
                 flash: shouldFlash,
@@ -134,129 +211,423 @@
                     hello: 'hello word'
                 },
                 tag: tag,
-                company: company
-            });
+                company: company,
+                method: 'notification',
+            };
 
-            notf.addEventListener('click', onclick);
-            function onclick(event) {
-                event.target.close();
-                alert('notification clicked: ' + event.target.data.hello);
+            if (window.ssf) {
+                const ssfNotificationHandler = new window.ssf.Notification(notf.title, notf);
+                const onclick = (event) => {
+                    event.target.close();
+                    alert('notification clicked: ' + event.target.data.title);
+                };
+                ssfNotificationHandler.addEventListener('click', onclick);
+
+                const onclose = () => {
+                    alert('notification closed');
+                };
+                ssfNotificationHandler.addEventListener('close', onclose);
+
+                const onerror = (event) => {
+                    alert('error=' + event.result);
+                };
+                ssfNotificationHandler.addEventListener('error', onerror);
+            } else {
+                window.postMessage({ method: 'notification', data: notf }, '*');
             }
 
-            notf.addEventListener('close', onclose);
-            function onclose() {
-                alert('notification closed');
-            };
-
-            notf.addEventListener('error', onerror);
-            function onerror(event) {
-                alert('error=' + event.result);
-            };
         });
 
-        var badgeCount = 0;
+        /**
+         * Badge Count
+         */
+        let badgeCount = 0;
 
-        var incBadgeEl = document.getElementById('inc-badge');
-        incBadgeEl.addEventListener('click', function() {
+        const incBadgeEl = document.getElementById('inc-badge');
+        incBadgeEl.addEventListener('click', () => {
             badgeCount++;
-            ssf.setBadgeCount(badgeCount);
+            if (window.ssf) {
+                ssf.setBadgeCount(badgeCount);
+            } else {
+                postMessage(apiCmds.setBadgeCount, badgeCount);
+            }
         });
 
-        var incBadgeEl = document.getElementById('clear-badge');
-        incBadgeEl.addEventListener('click', function() {
+        const clearBadgeCount = document.getElementById('clear-badge');
+        clearBadgeCount.addEventListener('click', () => {
             badgeCount = 0;
-            ssf.setBadgeCount(0);
-        });
-
-        var snippetButton = document.getElementById('snippet');
-        snippetButton.addEventListener('click', function() {
-            let snippet = new ssf.ScreenSnippet();
-
-            snippet
-            .capture()
-            .then(gotSnippet)
-            .catch(snippetError);
-
-            function gotSnippet(rsp) {
-                if (rsp && rsp.data && rsp.type) {
-                    var dataUrl = 'data:' + rsp.type + ',' + rsp.data;
-                    var img = document.getElementById('snippet-img');
-                    img.src = dataUrl;
-                }
-            }
-
-            function snippetError(err) {
-                alert('error getting snippet' + err);
+            if (window.ssf) {
+                ssf.setBadgeCount(0);
+            } else {
+                postMessage(apiCmds.setBadgeCount, 0);
             }
         });
 
-        var win;
+        const snippetButton = document.getElementById('snippet');
+        snippetButton.addEventListener('click', () => {
+            if (window.ssf) {
+                const gotSnippet = (rsp) => {
+                    if (rsp) {
+                        if (rsp.type && rsp.type === 'ERROR') {
+                            // called when some error occurs during capture
+                            alert('error getting snippet' + rsp.message);
+                        } else if (rsp.data && rsp.type === 'image/png;base64') {
+                            const dataUrl = 'data:' + rsp.type + ',' + rsp.data;
+                            const img = document.getElementById('snippet-img');
+                            img.src = dataUrl;
+                        }
+                    }
+                };
+                const screenSnippet = new window.ssf.ScreenSnippet();
+                screenSnippet.capture().then(gotSnippet).catch(gotSnippet);
+            } else {
+                postMessage(apiCmds.openScreenSnippet)
+            }
+        });
 
-        var openWinButton = document.getElementById('open-win');
-        openWinButton.addEventListener('click', function() {
+        let win;
+
+        const openWinButton = document.getElementById('open-win');
+        openWinButton.addEventListener('click', () => {
             win = window.open('win.html?x=100&y=100', 'test-window', 'height=800,width=400');
         });
 
-        var front = document.getElementById('bring-to-front');
-        front.addEventListener('click', function() {
-            window.ssf.activate(win.name);
+        const front = document.getElementById('bring-to-front');
+        front.addEventListener('click', () => {
+            if (window.ssf) {
+                window.ssf.activate(win.name);
+            } else {
+                postMessage(apiCmds.activate, win.name);
+            }
         });
 
+        const frontWithoutFocus = document.getElementById('bring-to-front-without-focus');
+        frontWithoutFocus.addEventListener('click', () => {
+            if (window.ssf) {
+                window.ssf.bringToFront(win.name, 'notification');
+            } else {
+                postMessage(apiCmds.bringToFront, { windowName: win.name, reason: 'notification' });
+            }
+        });
+
+        var getVersionInfo = document.getElementById('get-version');
+        getVersionInfo.addEventListener('click', () => {
+            if (window.ssf) {
+                ssf.getVersionInfo().then((verInfo) => {
+                    let apiVersionInfo = document.getElementById('api-version');
+                    let containerIdentifier = document.getElementById('container-identifier');
+                    let version = document.getElementById('container-ver');
+                    let buildNumber = document.getElementById('build-number');
+                    let searchApiVer = document.getElementById('search-api-ver');
+
+                    apiVersionInfo.innerText = verInfo.apiVer;
+                    containerIdentifier.innerText = verInfo.containerIdentifier;
+                    version.innerText = verInfo.containerVer;
+                    buildNumber.innerText = verInfo.buildNumber;
+                    searchApiVer.innerText = verInfo.searchApiVer;
+                });
+            } else {
+                postRequest(apiCmds.getVersionInfo, null, {
+                    successCallback: (verInfo) => {
+                        let apiVersionInfo = document.getElementById('api-version');
+                        let containerIdentifier = document.getElementById('container-identifier');
+                        let version = document.getElementById('container-ver');
+                        let buildNumber = document.getElementById('build-number');
+                        let searchApiVer = document.getElementById('search-api-ver');
+
+                        apiVersionInfo.innerText = verInfo.apiVer;
+                        containerIdentifier.innerText = verInfo.containerIdentifier;
+                        version.innerText = verInfo.containerVer;
+                        buildNumber.innerText = verInfo.buildNumber;
+                        searchApiVer.innerText = verInfo.searchApiVer;
+                    }
+                });
+            }
+        });
+
+        /**
+         * Core post message api handler
+         */
+        const pending = [];
+        /**
+         * Delete the request once we get the response
+         * @returns {boolean}
+         * @param id
+         */
+        const forgetRequest = (id) => {
+            return delete pending[ id ];
+        };
+
+        const broadcastMessage = (method, data) => {
+            window.postMessage({ method: method, data: data }, window.origin);
+        };
+        /**
+         *
+         * @param method
+         * @param data
+         * @param handlers
+         */
+        const postRequest = (method, data = {}, handlers) => {
+            const request = Object.assign({ requestId: ++requestId }, data);
+            pending[ request.requestId ] = {
+                errorCallback: (error) => {
+                    return handlers.errorCallback(error)
+                        && forgetRequest(request.requestId);
+                },
+                successCallback: (response) => {
+                    return handlers.successCallback(response)
+                        && forgetRequest(request.requestId);
+                },
+            };
+            broadcastMessage(method, request);
+            return request.requestId;
+        };
+
+        const handleResponse = (data) => {
+            if (data && data.requestId) {
+                const id = data.requestId;
+                const content = data;
+                const resolver = pending[ id ];
+                if (!resolver) {
+                    return;
+                }
+                if (content.error) {
+                    resolver.errorCallback(content.error);
+                    return;
+                }
+                if (content.response) {
+                    resolver.successCallback(content.response);
+                    return;
+                }
+                resolver.successCallback(content);
+            }
+        };
+
+        const postMessage = (method, data) => {
+            window.postMessage({ method, data }, '*');
+        };
+
+        window.addEventListener('message', (event) => {
+            const { data, method } = event.data;
+            switch (method) {
+                case 'activity-callback':
+                    activityCallback(data);
+                    break;
+                case 'screen-snippet-callback':
+                    if (data) {
+                        if (data.type && data.type === 'ERROR') {
+                            // called when some error occurs during capture
+                            alert('error getting snippet' + data.message);
+                        } else if (data.data && data.type === 'image/png;base64') {
+                            const dataUrl = 'data:' + data.type + ',' + data.data;
+                            const img = document.getElementById('snippet-img');
+                            img.src = dataUrl;
+                        }
+                    }
+                    break;
+                case 'media-source-callback':
+                case 'screen-sharing-indicator-callback':
+                case 'get-version-info-callback':
+                    handleResponse(data);
+                    console.log(event.data);
+                    break;
+                default:
+                    console.log(event.data);
+            }
+        });
+
+        /**
+         * Bound Changes
+         */
         // register callback to be notified when size/position changes for win.
-        ssf.registerBoundsChange(onBoundsChange);
+        if (window.ssf) {
+            ssf.registerBoundsChange(onBoundsChange);
+        } else {
+            postMessage(apiCmds.registerBoundsChange);
+        }
 
         function onBoundsChange(arg) {
             console.log('bounds changed for=', arg)
         }
 
-        // crash the renderer process
-        const crash = document.getElementById('crash');
-        crash.addEventListener('click', function () {
-            ssf.crashRendererProcess();
+        /**
+         * Protocol handler
+         */
+        if (window.ssf) {
+            window.ssf.registerProtocolHandler();
+        } else {
+            postMessage(apiCmds.registerProtocolHandler);
+        }
+
+        /**
+         * Activity Detection
+         */
+        const activityDetection = document.getElementById('activity-detection');
+        const activityStatus = document.getElementById('activity-status');
+        activityDetection.addEventListener('click', () => {
+            if (window.ssf) {
+                window.ssf.registerActivityDetection(5000, activityCallback);
+                startActivityInterval();
+            } else {
+                postMessage(apiCmds.registerActivityDetection, 5000);
+                startActivityInterval();
+            }
         });
 
-        var getSources = document.getElementById('get-sources');
-        getSources.addEventListener('click', function() {
-            ssf.getMediaSource({types: ['window', 'screen']}, function(error, source) {
-                if (error) throw error
-                  navigator.webkitGetUserMedia({
-                    audio: false,
-                    video: {
-                      mandatory: {
-                        chromeMediaSource: 'desktop',
-                        chromeMediaSourceId: source.id,
-                        minWidth: 1280,
-                        maxWidth: 1280,
-                        minHeight: 720,
-                        maxHeight: 720
-                      }
+        let activityTimer;
+        const startActivityInterval = () => {
+            return setInterval(() => {
+                activityStatus.classList.remove('green-dot');
+                activityStatus.classList.add('yellow-dot');
+            }, 10000);
+        };
+        const activityCallback = (data) => {
+            activityStatus.classList.remove('yellow-dot');
+            activityStatus.classList.add('green-dot');
+            console.log(data);
+            if (activityTimer) {
+                clearInterval(activityTimer);
+                activityTimer = null;
+            }
+            activityTimer = startActivityInterval();
+        };
+
+        /**
+         * Desktop capture
+         */
+        const getSources = document.getElementById('get-sources');
+        getSources.addEventListener('click', () => {
+            if (window.ssf) {
+                ssf.getMediaSource({types: ['window', 'screen']}, function(error, source) {
+                    if (error) throw error;
+                    navigator.webkitGetUserMedia({
+                        audio: false,
+                        video: {
+                            mandatory: {
+                                chromeMediaSource: 'desktop',
+                                chromeMediaSourceId: source.id,
+                                minWidth: 1280,
+                                maxWidth: 1280,
+                                minHeight: 720,
+                                maxHeight: 720
+                            }
+                        }
+                    }, stream => {
+                        handleStream(stream, source.display_id);
+                    }, handleError);
+                });
+            } else {
+                const successHandler = (data) => {
+                    const constraints = {
+                        mandatory: {
+                            chromeMediaSource: 'desktop',
+                            maxWidth: screen.width > 1920 ? 1920 : screen.width,
+                            maxHeight: screen.height > 1080 ? 1080 : screen.height,
+                            chromeMediaSourceId: data.source.id
+                        },
+                        optional: []
+                    };
+                    navigator.mediaDevices.getUserMedia({ video: constraints }).then((stream) => {
+                        handleStream(stream, data.source.display_id);
+                    });
+                };
+                const errorHandler = (data) => {
+                    if (data.error) {
+                        if (data.error.message === 'User Cancelled') {
+                            console.error('user canceled');
+                        } else {
+                            throw new Error(data.error);
+                        }
                     }
-                  }, handleStream, handleError)
-            });
+                };
+                postRequest(apiCmds.getMediaSource, { types: ['window', 'screen'] }, {
+                    successCallback: (data) => successHandler(data),
+                    errorCallback: (error) => errorHandler(error),
+                });
+            }
         });
 
-        function handleStream (stream) {
-          document.querySelector('video').src = URL.createObjectURL(stream)
-        }
+        const handleStream = (stream, displayId) => {
+            document.getElementById('video').srcObject = stream;
+            if (window.ssf) {
+                ssf.showScreenSharingIndicator({
+                    stream,
+                    displayId
+                }, (event) => {
+                    console.log('screen-sharing-indicator callback', event);
+                    if (event.type === 'stopRequested') {
+                        stream.getVideoTracks().forEach(t => t.stop());
+                        document.getElementById('video').srcObject = null;
+                    }
+                });
+            } else {
+                const success = (data) => {
+                    if (data.error) {
+                        if (data.error.message === 'User Cancelled') {
+                            console.error('user canceled');
+                        } else {
+                            throw new Error(data.error);
+                        }
+                        return;
+                    }
+                    if (!data || typeof data.type !== 'string' || !requestId) {
+                        console.error(`screen-sharing-indicator-callback invalid args ${data}`);
+                    } else {
+                        console.log(`screen sharing will be stopped`);
+                    }
+                };
+                postRequest(apiCmds.openScreenSharingIndicator, { streamId: stream.id, displayId }, {
+                    successCallback: (data) => success(data),
+                });
+            }
+        };
 
-        function handleError (e) {
-          console.log(e)
-        }
+        const handleError = (e) => {
+            console.error(e);
+        };
 
-        var getVersionInfo = document.getElementById('get-version');
-        getVersionInfo.addEventListener('click', function() {
-            ssf.getVersionInfo().then(function(verInfo) {
-                let apiVersionInfo = document.getElementById('api-version');
-                let containerIdentifier = document.getElementById('container-identifier');
-                let version = document.getElementById('container-ver');
-                let buildNumber = document.getElementById('build-number');
-
-                apiVersionInfo.innerText = verInfo.apiVer;
-                containerIdentifier.innerText = verInfo.containerIdentifier;
-                version.innerText = verInfo.containerVer;
-                buildNumber.innerText = verInfo.buildNumber;
-            });
+        /**
+         * Locale api handler
+         */
+        document.getElementById('changeLocale').addEventListener('click', () => {
+            const locale = document.getElementById('locale-select').value;
+            if (window.ssf) {
+                window.ssf.setLocale(locale);
+                document.location.reload();
+            } else {
+                postMessage(apiCmds.setLocale, locale);
+                document.location.reload();
+            }
         });
+
+        /**
+         * Download Manager api handler
+         */
+        const download = (filename, text) => {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        };
+
+        // Start file download.
+        document.getElementById('download-file1').addEventListener('click', () => {
+            const filename = "hello.txt";
+            const text = document.getElementById("text-val").value;
+            download(filename, text);
+        }, false);
+
+        document.getElementById('download-file2').addEventListener('click', () => {
+            const filename = "bye.txt";
+            const text = document.getElementById("text-val").value;
+            download(filename, text);
+        }, false);
 
     </script>
 </html>
