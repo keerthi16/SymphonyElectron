@@ -1,8 +1,8 @@
-import { ipcRenderer, webFrame } from 'electron';
+import { contextBridge, ipcRenderer, remote, webFrame } from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { apiCmds, apiName } from '../common/api-interface';
 
+import { apiCmds, apiName } from '../common/api-interface';
 import { i18n } from '../common/i18n-preload';
 import './app-bridge';
 import DownloadManager from './components/download-manager';
@@ -19,6 +19,15 @@ const ssfWindow: ISSFWindow = window;
 const minMemoryFetchInterval = 4 * 60 * 60 * 1000;
 const maxMemoryFetchInterval = 12 * 60 * 60 * 1000;
 const snackBar = new SnackBar();
+
+let swiftSearchMana: any;
+try {
+    swiftSearchMana = remote.require('swift-search').SwiftSearchMana;
+} catch (e) {
+    swiftSearchMana = null;
+    // tslint:disable-next-line
+    console.warn("Failed to initialize swift search utils. You'll need to include the search dependency. Contact the developers for more details", e);
+}
 
 /**
  * creates API exposed from electron.
@@ -37,9 +46,21 @@ const createAPI = () => {
     //
     // API exposed to renderer process.
     //
+    // Todo: Remove this if we plan to enable contextIsolation permanently
     // @ts-ignore
     ssfWindow.ssf = new SSFApi();
     Object.freeze(ssfWindow.ssf);
+
+    try {
+        contextBridge.exposeInMainWorld(
+            'mana',
+            {
+                swiftSearchMana,
+            },
+        );
+    } catch (e) {
+        console.error('Context Bridge can only be accessed in Isolated world', e);
+    }
 };
 
 createAPI();
