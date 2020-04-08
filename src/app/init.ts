@@ -12,7 +12,7 @@ const userDataPath = userDataPathArg && userDataPathArg.substring(userDataPathAr
 
 // force sandbox: true for all BrowserWindow instances.
 if (!isNodeEnv) {
-    app.enableSandbox();
+    // app.enableSandbox();
 }
 
 // need to set this explicitly if using Squirrel
