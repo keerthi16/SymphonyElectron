@@ -24,6 +24,7 @@ try {
     ssInstance = new SSAPIBridge();
 } catch (e) {
     ssInstance = null;
+    console.error(e);
     console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
 }
 

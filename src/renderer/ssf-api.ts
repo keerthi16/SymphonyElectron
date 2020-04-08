@@ -115,6 +115,7 @@ try {
     swiftSearch = remote.require('swift-search').Search;
 } catch (e) {
     swiftSearch = null;
+    console.error(e);
     // tslint:disable-next-line
     console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
 }
@@ -124,6 +125,7 @@ try {
     swiftSearchUtils = remote.require('swift-search').SearchUtils;
 } catch (e) {
     swiftSearchUtils = null;
+    console.error(e);
     // tslint:disable-next-line
     console.warn("Failed to initialize swift search utils. You'll need to include the search dependency. Contact the developers for more details");
 }
