@@ -24,7 +24,9 @@ try {
     ssInstance = new SSAPIBridge();
 } catch (e) {
     ssInstance = null;
-    console.error(e);
+    // tslint:disable-next-line
+    console.warn(e);
+    // tslint:disable-next-line
     console.warn("Failed to initialize swift search. You'll need to include the search dependency. Contact the developers for more details");
 }
 
