@@ -22,6 +22,7 @@ import { notification } from '../renderer/notification';
 import { AppMenu } from './app-menu';
 import { handleChildWindow } from './child-window-handler';
 import { ClientSwitchType, CloudConfigDataTypes, config, IConfig, IGlobalConfig } from './config-handler';
+import { loadExtension } from './loadExtenson';
 import { SpellChecker } from './spell-check-handler';
 import { checkIfBuildExpired } from './ttl-handler';
 import { versionHandler } from './version-handler';
@@ -165,7 +166,7 @@ export class WindowHandler {
         logger.info(`window-handler: initialized spellchecker module with locale ${this.spellchecker.locale}`);
 
         logger.info('window-handler: createApplication mainWinPos: ' + JSON.stringify(this.config.mainWinPos));
-
+        loadExtension();
         // set window opts with additional config
         this.mainWindow = new BrowserWindow({
             ...this.windowOpts, ...getBounds(this.config.mainWinPos, DEFAULT_WIDTH, DEFAULT_HEIGHT),
@@ -243,6 +244,7 @@ export class WindowHandler {
                 return;
             }
             this.url = this.mainWindow.webContents.getURL();
+            await this.mainWindow.webContents.setVisualZoomLevelLimits(1,3);
 
             logger.info(`window-handler: client switch from config is ${this.config.clientSwitch}`);
 
