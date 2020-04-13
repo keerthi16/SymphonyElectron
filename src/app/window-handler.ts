@@ -166,12 +166,11 @@ export class WindowHandler {
         logger.info(`window-handler: initialized spellchecker module with locale ${this.spellchecker.locale}`);
 
         logger.info('window-handler: createApplication mainWinPos: ' + JSON.stringify(this.config.mainWinPos));
-        loadExtension();
         // set window opts with additional config
         this.mainWindow = new BrowserWindow({
             ...this.windowOpts, ...getBounds(this.config.mainWinPos, DEFAULT_WIDTH, DEFAULT_HEIGHT),
         }) as ICustomBrowserWindow;
-
+        loadExtension();
         if (isWindowsOS) {
             // SDA-1720 when Symphony on secondary screen is wider than main screen, the window on secondary is clapmed to the width of main screen
             // Only happens on windows (BrowserWindow)
